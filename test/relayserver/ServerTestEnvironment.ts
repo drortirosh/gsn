@@ -185,7 +185,7 @@ export class ServerTestEnvironment {
     const shared: Partial<ServerConfigParams> = {
       runPaymasterReputations: false,
       relayHubAddress: this.relayHub.address,
-      checkInterval: 10
+      checkInterval: 100
     }
     const logger = createServerLogger('error', '', '')
     const managerKeyManager = this._createKeyManager(serverWorkdirs?.managerWorkdir)

@@ -99,7 +99,7 @@ contract('RegistrationManager', function (accounts) {
         pctRelayFee: 0,
         gasPriceFactor: 1,
         runPaymasterReputations: false,
-        checkInterval: 10
+        checkInterval: 100
       }
       const logger = createServerLogger('error', '', '')
       const managerKeyManager = new KeyManager(1, serverWorkdirs.managerWorkdir)
