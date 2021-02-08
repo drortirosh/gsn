@@ -3,24 +3,6 @@ name: GSN CI
 on: pull_request
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup node 12
-      uses: actions/setup-node@v2
-      with:
-        node-version: 12.x
-    - name: node-modules restore
-      id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-      uses: actions/cache@v2
-      with:
-        path: |
-          node_modules
-          */*/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
-    #never attempt to install. only "build" builds the cache.
-    - run: yarn lint
 
   build:
     runs-on: ubuntu-latest
@@ -51,5 +33,32 @@ jobs:
     - name: yarn install
       run: yarn
       if: steps.yarn-cache.outputs.cache-hit != 'true'
+    - name: yarn prepare
+      run: yarn
+      if: steps.yarn-cache.outputs.cache-hit == 'true'
 
     - run: yarn test-js
+
+
+  # lint in a separate docker..
+  # note that it requires the build job to build the cache first.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup node 12
+      uses: actions/setup-node@v2
+      with:
+        node-version: 12.x
+    - name: node-modules restore
+      id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      uses: actions/cache@v2
+      with:
+        path: |
+          node_modules
+          */*/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+    #never attempt to install. only "build" builds the cache.
+    - run: yarn prepare
+    - run: yarn lint
+
