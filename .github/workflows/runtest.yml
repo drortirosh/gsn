@@ -24,4 +24,4 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
     - run: node --version
     - run: yarn
-    - run: yarn test
+    #- run: yarn test
