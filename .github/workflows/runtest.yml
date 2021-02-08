@@ -1,0 +1,64 @@
+name: GSN CI
+
+on: pull_request
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    # from: https://github.com/marketplace/actions/cancel-workflow-action
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.7.0
+      with:
+        access_token: ${{ github.token }}
+
+    - uses: actions/checkout@v2
+    - name: Setup node 12
+      uses: actions/setup-node@v2
+      with:
+        node-version: 12.x
+
+    #fast caching of node_modules. shouldn't be used in matrix (more than 1 node version)
+    - name: node-modules restore
+      id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      uses: actions/cache@v2
+      with:
+        path: |
+          node_modules
+          */*/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+    - run: node --version
+    - name: yarn install
+      run: yarn
+      if: steps.yarn-cache.outputs.cache-hit != 'true'
+    - name: yarn prepare
+      run: yarn
+      if: steps.yarn-cache.outputs.cache-hit == 'true'
+
+    - run: yarn test-js
+
+
+  # lint in a separate docker..
+  # note that it requires the build job to build the cache first.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup node 12
+      uses: actions/setup-node@v2
+      with:
+        node-version: 12.x
+    - name: node-modules restore
+      id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      uses: actions/cache@v2
+      with:
+        path: |
+          node_modules
+          */*/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
+    #never attempt to install. only "build" builds the cache.
+    - run: yarn prepare
+    - run: yarn lint
+
