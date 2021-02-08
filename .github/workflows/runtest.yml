@@ -8,6 +8,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+	#from: https://github.com/marketplace/actions/cancel-workflow-action
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.7.0
+      with:
+        access_token: ${{ github.token }}
+
     - uses: actions/checkout@v2
     - name: Setup node 12
       uses: actions/setup-node@v2
@@ -16,6 +23,8 @@ jobs:
 
     #fast caching of node_modules. shouldn't be used in matrix (more than 1 node version)
     - name: node-modules restore
+      id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+
       uses: actions/cache@v2
       with:
         path: |
@@ -23,5 +32,7 @@ jobs:
           */*/node_modules
         key: ${{ runner.os }}-${{ hashFiles('**/yarn.lock') }}
     - run: node --version
-    - run: yarn
+    - name: yarn install
+      run: yarn
+      if: steps.yarn-cache.outputs.cache-hit != 'true'
     #- run: yarn test
